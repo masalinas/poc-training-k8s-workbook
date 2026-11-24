@@ -1,0 +1,55 @@
+# =============================================================================
+# .gitignore para poc-training-k8s-workbook
+# =============================================================================
+
+# --- Byte-compiled / optimizados de Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# --- Entornos virtuales de Python ---
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# --- Empaquetado, distribución y caché ---
+build/
+dist/
+*.egg-info/
+.eggs/
+*.manifest
+*.spec
+
+# --- Testing y cobertura ---
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# --- Editores e IDEs ---
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*~
+
+# --- Archivos del sistema operativo y logs ---
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+ehthumbs.db
+*.log
+*.tmp
+*.bak
+
+# --- Opcional: Descomentar si se prefiere no versionar los documentos compilados ---
+# k8s-exercises-workbook.pdf
+# docs/*.html
