@@ -8,6 +8,7 @@ Para solucionar este problema de raíz y mejorar la experiencia de laboratorio d
 ## What Changes
 
 - **Preservación de indentación en PDF con `/ActualText`**: Actualización del pipeline de generación y compilación en `scripts/generate_html_pdf.py` para interceptar bloques de código y utilizar marcado semántico ISO 32000-1 (`/ActualText`) y reglas CSS de espaciado estricto, garantizando que al seleccionar y copiar texto desde cualquier visor (Evince, Chrome, Acrobat, etc.) se preserven todos los espacios iniciales de sangría.
+- **Normalización de barras de continuación de comando (`\`)**: Corrección de comandos multilínea en los módulos para que terminen con una única barra invertida (`\`) y salto de línea estándar, eliminando dobles barras de escape (`\\`).
 - **Exportación de manifiestos declarativos (`manifests/`)**: Generación automatizada del directorio `manifests/` conteniendo los 42 ficheros YAML comentados y organizados por carpetas modulares (`manifests/01-pods/`, `manifests/02-replicasets/`, ..., `manifests/14-kustomize/`).
 - **Comprobación y validación**: Extensión de `scripts/verify_workbook.py` para validar que el texto extraído de los bloques de código en el PDF mantiene la indentación correcta y verificar la existencia e integridad de los 42 ficheros YAML exportados.
 - **Actualización de documentación**: Actualización de `README.md` reflejando la nueva carpeta de manifiestos y las instrucciones de uso rápido con `kubectl apply -f manifests/...`.

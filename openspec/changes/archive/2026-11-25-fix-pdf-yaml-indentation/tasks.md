@@ -4,6 +4,7 @@
 
 - [x] 1.1 Reforzar en `scripts/generate_html_pdf.py` las reglas de estilo de `<pre>` (`white-space: pre !important; word-break: normal !important; overflow-wrap: normal !important;`) para evitar fragmentaciones anómalas de indentación y comprobar el HTML generado con `python3 scripts/generate_html_pdf.py`.
 - [x] 1.2 Enriquecer los bloques de código en la generación HTML para facilitar la identificación de líneas de código y delimitadores de manifiestos.
+- [x] 1.3 Normalizar las continuaciones de comando multilínea en los módulos a una única barra invertida (`\`), eliminando las dobles barras de escape (`\\`).
 
 ## 2. Inyección de Marcado `/ActualText` en el Pipeline PDF
 

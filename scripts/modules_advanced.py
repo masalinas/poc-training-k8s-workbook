@@ -341,7 +341,7 @@ kubectl get pods -n lab-daemonsets -l app=security-agent -o wide</code></pre>
 
 <p><strong>Comandos de Actualización:</strong></p>
 <pre><code># 1. Actualizar la imagen del DaemonSet
-kubectl set image ds/ds-node-log-collector \\\\
+kubectl set image ds/ds-node-log-collector \\
   log-collector=busybox:1.36.1 -n lab-daemonsets
 
 # 2. Monitorear el progreso en tiempo real

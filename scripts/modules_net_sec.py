@@ -198,7 +198,7 @@ spec:
 <p><strong>Validación con curl:</strong></p>
 <pre><code>kubectl apply -f ingress-vhost.yaml
 # Obtener IP del Ingress
-INGRESS_IP=$(kubectl get ingress -n lab-ingress ingress-vhost-routing \\\\
+INGRESS_IP=$(kubectl get ingress -n lab-ingress ingress-vhost-routing \\
   -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
 # Si estás en un lab sin LoadBalancer, usa localhost o la IP de tu nodo
 curl -H "Host: tienda.example.com" http://${INGRESS_IP:-localhost}/
@@ -348,7 +348,7 @@ spec:
 
 <p><strong>Validación:</strong></p>
 <pre><code>kubectl apply -f sa-hardened.yaml
-kubectl exec -n lab-rbac pod-secure-sa -- \\\\
+kubectl exec -n lab-rbac pod-secure-sa -- \\
   ls -la /var/run/secrets/kubernetes.io/serviceaccount 2&gt;&amp;1
 # Confirmar que la ruta no existe</code></pre>
 """

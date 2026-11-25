@@ -363,7 +363,7 @@ spec:
 
 <p><strong>Validación de Permisos:</strong></p>
 <pre><code>kubectl apply -f secret-permissions.yaml
-kubectl exec -n lab-secrets pod-restricted-secret -- \\\\
+kubectl exec -n lab-secrets pod-restricted-secret -- \\
   ls -la /etc/keys/api-token.key
 # Salida esperada: -r--------    1 root     root</code></pre>
 """
