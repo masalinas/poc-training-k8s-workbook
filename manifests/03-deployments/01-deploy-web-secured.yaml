@@ -1,0 +1,42 @@
+# =============================================================================
+# Modulo 03: Deployments: Actualizaciones Continuas y Estrategias Rollout
+# Ejercicio 3.1: Despliegue Declarativo con Requests y Limits de Recursos
+# Namespace Asignado: lab-deployments
+# =============================================================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: lab-deployments
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deploy-web-secured
+  namespace: lab-deployments
+  labels:
+    app: web-secured
+    tier: frontend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: web-secured
+  template:
+    metadata:
+      labels:
+        app: web-secured
+        tier: frontend
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.25-alpine
+          ports:
+            - name: http
+              containerPort: 80
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "128Mi"
+              cpu: "100m"

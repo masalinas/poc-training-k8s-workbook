@@ -1,0 +1,23 @@
+# =============================================================================
+# Modulo 02: ReplicaSets: Controladores de Réplicas y Auto-sanación
+# Ejercicio 2.2: Escalado Elástico y Prueba de Auto-recuperación
+# Namespace Asignado: lab-replicasets
+# =============================================================================
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: rs-elastic-worker
+  namespace: lab-replicasets
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: elastic-worker
+  template:
+    metadata:
+      labels:
+        app: elastic-worker
+    spec:
+      containers:
+        - name: redis
+          image: redis:7.2-alpine

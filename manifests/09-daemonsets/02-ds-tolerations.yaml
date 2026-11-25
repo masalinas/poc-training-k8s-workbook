@@ -1,0 +1,32 @@
+# =============================================================================
+# Modulo 09: DaemonSets: Agentes de Nodo y Tolerancias
+# Ejercicio 9.2: Tolerancias para Forzar Ejecución en Nodos del Control Plane
+# Namespace Asignado: lab-daemonsets
+# =============================================================================
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: ds-security-agent
+  namespace: lab-daemonsets
+  labels:
+    app: security-agent
+spec:
+  selector:
+    matchLabels:
+      app: security-agent
+  template:
+    metadata:
+      labels:
+        app: security-agent
+    spec:
+      tolerations:
+        - key: node-role.kubernetes.io/control-plane
+          operator: Exists
+          effect: NoSchedule
+        - key: node-role.kubernetes.io/master
+          operator: Exists
+          effect: NoSchedule
+      containers:
+        - name: agent
+          image: alpine:3.19
+          command: ["/bin/sh", "-c", "echo 'Seguridad activa en nodo'; sleep 3600"]

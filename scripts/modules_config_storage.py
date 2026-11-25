@@ -288,7 +288,7 @@ MODULE_SECRETS = {
 <p><strong>Explicación Técnica:</strong> Los valores en un Secret Opaque deben codificarse con <code>base64</code> (o bien utilizar <code>stringData</code> en el manifiesto para que Kubernetes los codifique automáticamente).</p>
 
 <p><strong>Generación Imperativa y Manifiesto YAML:</strong></p>
-<pre><code># 1. Crear namespace y Secret de forma imperativa (Recomendado en CKA)
+<pre><code># 1. Crear namespace y Secret de forma imperativa (Truco CKA)
 kubectl create namespace lab-secrets
 kubectl create secret generic sec-db-credentials -n lab-secrets \\
   --from-literal=DB_USER='app_admin' \\
@@ -338,7 +338,8 @@ metadata:
   namespace: lab-secrets
 type: Opaque
 stringData:
-  api-token.key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.token-secreto-de-produccion"
+  api-token.key: >-
+    eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.token-secreto-de-produccion
 ---
 apiVersion: v1
 kind: Pod
@@ -362,7 +363,8 @@ spec:
 
 <p><strong>Validación de Permisos:</strong></p>
 <pre><code>kubectl apply -f secret-permissions.yaml
-kubectl exec -n lab-secrets pod-restricted-secret -- ls -la /etc/keys/api-token.key
+kubectl exec -n lab-secrets pod-restricted-secret -- \\\\
+  ls -la /etc/keys/api-token.key
 # Salida esperada: -r--------    1 root     root</code></pre>
 """
         },

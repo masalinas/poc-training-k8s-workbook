@@ -1,0 +1,42 @@
+# =============================================================================
+# Modulo 01: Pods: Contenedores y Ciclo de Vida
+# Ejercicio 1.3: Resiliencia Avanzada con Startup, Liveness y Readiness Probes
+# Namespace Asignado: lab-pods
+# =============================================================================
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-health-hardened
+  namespace: lab-pods
+  labels:
+    app: hardened-web
+spec:
+  containers:
+    - name: web
+      image: nginx:1.25-alpine
+      ports:
+        - containerPort: 80
+      # 1. Startup Probe: da hasta 10 * 5s = 50s para arrancar
+      startupProbe:
+        httpGet:
+          path: /
+          port: 80
+        initialDelaySeconds: 2
+        periodSeconds: 5
+        failureThreshold: 10
+      # 2. Liveness Probe: reinicia si el servicio muere tras el startup
+      livenessProbe:
+        httpGet:
+          path: /
+          port: 80
+        periodSeconds: 10
+        timeoutSeconds: 2
+        failureThreshold: 3
+      # 3. Readiness Probe: extrae el Pod de los endpoints si no está listo
+      readinessProbe:
+        httpGet:
+          path: /
+          port: 80
+        periodSeconds: 5
+        successThreshold: 1
+        failureThreshold: 2

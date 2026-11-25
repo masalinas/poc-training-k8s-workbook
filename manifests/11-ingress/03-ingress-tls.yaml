@@ -1,0 +1,27 @@
+# =============================================================================
+# Modulo 11: Ingress: Controladores de Enrutamiento HTTP/HTTPS
+# Ejercicio 11.3: Terminación TLS Segura en Ingress con Secret Asociado
+# Namespace Asignado: lab-ingress
+# =============================================================================
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-tls-secure
+  namespace: lab-ingress
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - tienda.example.com
+      secretName: sec-ingress-tls
+  rules:
+    - host: tienda.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: svc-catalog
+                port:
+                  number: 80

@@ -1,0 +1,31 @@
+# =============================================================================
+# Modulo 05: ConfigMaps: Desacoplamiento de la Configuración
+# Ejercicio 5.3: Montaje Granular con subPath sin Sobreescribir Directorios
+# Namespace Asignado: lab-configmaps
+# =============================================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cm-single-file
+  namespace: lab-configmaps
+data:
+  my-config.ini: "mode=fast\nthreads=4\n"
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-subpath-test
+  namespace: lab-configmaps
+spec:
+  volumes:
+    - name: config-vol
+      configMap:
+        name: cm-single-file
+  containers:
+    - name: app
+      image: alpine:3.19
+      command: ["/bin/sh", "-c", "sleep 3600"]
+      volumeMounts:
+        - name: config-vol
+          mountPath: /etc/my-config.ini
+          subPath: my-config.ini

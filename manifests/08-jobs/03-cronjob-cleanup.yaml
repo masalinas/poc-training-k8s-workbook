@@ -1,0 +1,26 @@
+# =============================================================================
+# Modulo 08: Jobs y CronJobs: Cargas de Trabajo por Lotes
+# Ejercicio 8.3: CronJob Programado con concurrencyPolicy: Forbid e Historial
+# Namespace Asignado: lab-jobs
+# =============================================================================
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: cron-db-backup
+  namespace: lab-jobs
+spec:
+  schedule: "*/2 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: backup
+              image: busybox:1.36
+              command: ["/bin/sh", "-c"]
+              args:
+                - "echo '[$(date)] Generando backup de base de datos...'; sleep 30; echo 'Backup guardado.'"

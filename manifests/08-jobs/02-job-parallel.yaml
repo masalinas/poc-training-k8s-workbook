@@ -1,0 +1,25 @@
+# =============================================================================
+# Modulo 08: Jobs y CronJobs: Cargas de Trabajo por Lotes
+# Ejercicio 8.2: Job Paralelo con Cola de Completados (completions y parallelism)
+# Namespace Asignado: lab-jobs
+# =============================================================================
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: job-parallel-processor
+  namespace: lab-jobs
+spec:
+  completions: 6
+  parallelism: 2
+  template:
+    metadata:
+      labels:
+        job: parallel-demo
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: worker
+          image: busybox:1.36
+          command: ["/bin/sh", "-c"]
+          args:
+            - "echo 'Procesando chunk en pod: $HOSTNAME'; sleep 5; echo 'Finalizado'"

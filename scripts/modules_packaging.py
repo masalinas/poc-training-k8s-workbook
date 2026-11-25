@@ -78,7 +78,9 @@ kubectl create namespace lab-helm
 helm create my-webapp
 
 # 3. Limpiar plantillas complejas opcionales para dejar lo esencial
-rm -f my-webapp/templates/hpa.yaml my-webapp/templates/ingress.yaml my-webapp/templates/serviceaccount.yaml
+rm -f my-webapp/templates/hpa.yaml \\\\
+  my-webapp/templates/ingress.yaml \\\\
+  my-webapp/templates/serviceaccount.yaml
 
 # 4. Validar sintaxis estricta
 helm lint my-webapp

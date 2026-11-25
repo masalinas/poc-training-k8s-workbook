@@ -1,0 +1,17 @@
+# =============================================================================
+# Modulo 12: RBAC: Control de Acceso Basado en Roles y Cuentas de Servicio
+# Ejercicio 12.2: Definición de Role con Privilegios Mínimos (Least Privilege)
+# Namespace Asignado: lab-rbac
+# =============================================================================
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: role-pod-viewer
+  namespace: lab-rbac
+rules:
+  - apiGroups: [""] # "" indica el apiGroup core
+    resources: ["pods", "pods/log"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "list"]

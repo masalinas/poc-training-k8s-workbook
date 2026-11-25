@@ -1,0 +1,35 @@
+# =============================================================================
+# Modulo 10: StatefulSets: Identidad Estable y Almacenamiento Persistente Ordenado
+# Ejercicio 10.2: Aprovisionamiento Dinámico de Almacenamiento con volumeClaimTemplates
+# Namespace Asignado: lab-statefulsets
+# =============================================================================
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: sts-data
+  namespace: lab-statefulsets
+spec:
+  serviceName: "svc-stateful-web"
+  replicas: 3
+  selector:
+    matchLabels:
+      app: stateful-data
+  template:
+    metadata:
+      labels:
+        app: stateful-data
+    spec:
+      containers:
+        - name: web
+          image: nginx:1.25-alpine
+          volumeMounts:
+            - name: data-vol
+              mountPath: /usr/share/nginx/html
+  volumeClaimTemplates:
+    - metadata:
+        name: data-vol
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi

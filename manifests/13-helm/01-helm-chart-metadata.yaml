@@ -1,0 +1,15 @@
+# =============================================================================
+# Modulo 13: Helm: Gestor de Paquetes y Templating para Kubernetes
+# Ejercicio 13.1: Anatomía de un Chart, Creación y Depuración con helm template / lint
+# Namespace Asignado: lab-helm
+# =============================================================================
+apiVersion: v2
+name: web-app
+description: Un Helm chart de produccion para web-app en Kubernetes
+type: application
+version: 0.1.0
+appVersion: "1.25.0"
+maintainers:
+  - name: Laboratorio K8s
+    email: lab@ejemplo.local
+dependencies: []

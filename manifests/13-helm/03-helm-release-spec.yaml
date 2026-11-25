@@ -1,0 +1,17 @@
+# =============================================================================
+# Modulo 13: Helm: Gestor de Paquetes y Templating para Kubernetes
+# Ejercicio 13.3: Gestión del Ciclo de Vida: helm upgrade, helm history y helm rollback
+# Namespace Asignado: lab-helm
+# =============================================================================
+apiVersion: v2
+name: web-app-lifecycle
+description: Chart para pruebas de ciclo de vida, upgrade y rollback
+type: application
+version: 1.1.0
+appVersion: "2.0.0"
+values:
+  replicaCount: 3
+  image:
+    repository: nginx
+    tag: "1.25-alpine"
+    pullPolicy: IfNotPresent

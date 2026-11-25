@@ -1,0 +1,28 @@
+# =============================================================================
+# Modulo 02: ReplicaSets: Controladores de Réplicas y Auto-sanación
+# Ejercicio 2.1: Selectores Basados en Conjuntos (matchExpressions) y Adopción de Pods
+# Namespace Asignado: lab-replicasets
+# =============================================================================
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: rs-payment-processor
+  namespace: lab-replicasets
+spec:
+  replicas: 3
+  selector:
+    matchExpressions:
+      - {key: app, operator: In, values: [payment]}
+      - {key: env, operator: In, values: [staging, production]}
+  template:
+    metadata:
+      labels:
+        app: payment
+        tier: backend
+        env: staging
+    spec:
+      containers:
+        - name: processor
+          image: nginx:1.25-alpine
+          ports:
+            - containerPort: 80

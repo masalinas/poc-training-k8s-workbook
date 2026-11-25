@@ -1,0 +1,45 @@
+# =============================================================================
+# Modulo 10: StatefulSets: Identidad Estable y Almacenamiento Persistente Ordenado
+# Ejercicio 10.1: Identidad de Red Estable y Despliegue Secuencial (web-0, web-1)
+# Namespace Asignado: lab-statefulsets
+# =============================================================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: lab-statefulsets
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-stateful-web
+  namespace: lab-statefulsets
+spec:
+  clusterIP: None
+  selector:
+    app: stateful-web
+  ports:
+    - port: 80
+      name: web
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: sts-web
+  namespace: lab-statefulsets
+spec:
+  serviceName: "svc-stateful-web"
+  replicas: 3
+  selector:
+    matchLabels:
+      app: stateful-web
+  template:
+    metadata:
+      labels:
+        app: stateful-web
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.25-alpine
+          ports:
+            - containerPort: 80
+              name: web

@@ -1,0 +1,20 @@
+# =============================================================================
+# Modulo 07: Almacenamiento Persistente: PV y PVC
+# Ejercicio 7.1: Definición de PersistentVolume Estático (HostPath) con Política Retain
+# Namespace Asignado: lab-storage
+# =============================================================================
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-local-2gi
+spec:
+  capacity:
+    storage: 2Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual
+  hostPath:
+    path: /mnt/k8s-data
+    type: DirectoryOrCreate

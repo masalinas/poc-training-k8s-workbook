@@ -1,0 +1,27 @@
+# =============================================================================
+# Modulo 08: Jobs y CronJobs: Cargas de Trabajo por Lotes
+# Ejercicio 8.1: Job Batch de Una Sola Ejecución con Control de Reintentos
+# Namespace Asignado: lab-jobs
+# =============================================================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: lab-jobs
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: job-schema-migration
+  namespace: lab-jobs
+spec:
+  backoffLimit: 3
+  activeDeadlineSeconds: 120
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: migration-worker
+          image: busybox:1.36
+          command: ["/bin/sh", "-c"]
+          args:
+            - "echo 'Iniciando migracion...'; sleep 10; echo 'Migracion completada exitosamente'"

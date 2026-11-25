@@ -170,7 +170,7 @@ spec:
 <pre><code># 1. Aplicar CronJob
 kubectl apply -f cronjob.yaml
 
-# 2. Para no esperar 2 minutos en un examen, disparar un Job manual a partir del CronJob:
+# 2. Para no esperar 2 minutos en examen, disparar Job manual del CronJob:
 kubectl create job --from=cronjob/cron-db-backup test-manual-run -n lab-jobs
 kubectl get job -n lab-jobs test-manual-run</code></pre>
 """
@@ -273,7 +273,10 @@ spec:
       containers:
         - name: log-collector
           image: busybox:1.36
-          command: ["/bin/sh", "-c", "tail -n +1 -f /host/var/log/syslog || sleep 3600"]
+          command:
+            - /bin/sh
+            - -c
+            - "tail -n +1 -f /host/var/log/syslog || sleep 3600"
           volumeMounts:
             - name: host-logs
               mountPath: /host/var/log
@@ -338,7 +341,8 @@ kubectl get pods -n lab-daemonsets -l app=security-agent -o wide</code></pre>
 
 <p><strong>Comandos de Actualización:</strong></p>
 <pre><code># 1. Actualizar la imagen del DaemonSet
-kubectl set image ds/ds-node-log-collector log-collector=busybox:1.36.1 -n lab-daemonsets
+kubectl set image ds/ds-node-log-collector \\\\
+  log-collector=busybox:1.36.1 -n lab-daemonsets
 
 # 2. Monitorear el progreso en tiempo real
 kubectl rollout status ds/ds-node-log-collector -n lab-daemonsets
@@ -525,7 +529,8 @@ kubectl get pods -n lab-statefulsets -w
 # 3. Comprobar que los PVCs continúan existiendo (no se han borrado)
 kubectl get pvc -n lab-statefulsets
 
-# 4. Volver a escalar a 3 réplicas: los nuevos Pods reutilizarán sus discos previos
+# 4. Volver a escalar a 3 réplicas:
+#    los nuevos Pods reutilizarán sus discos previos
 kubectl scale sts sts-data -n lab-statefulsets --replicas=3
 kubectl get pods -n lab-statefulsets</code></pre>
 """

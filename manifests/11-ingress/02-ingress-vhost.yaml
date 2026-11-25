@@ -1,0 +1,33 @@
+# =============================================================================
+# Modulo 11: Ingress: Controladores de Enrutamiento HTTP/HTTPS
+# Ejercicio 11.2: Enrutamiento Basado en Nombres de Dominio (Virtual Host Routing)
+# Namespace Asignado: lab-ingress
+# =============================================================================
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-vhost-routing
+  namespace: lab-ingress
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: tienda.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: svc-catalog
+                port:
+                  number: 80
+    - host: admin.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: svc-orders
+                port:
+                  number: 80

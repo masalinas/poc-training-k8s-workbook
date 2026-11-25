@@ -8,6 +8,7 @@ import os
 import sys
 import shutil
 import subprocess
+import re
 
 WORKSPACE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 DOCS_DIR = os.path.join(WORKSPACE_DIR, "docs")
@@ -280,18 +281,27 @@ pre {
   border-left: 4px solid #326ce5;
   margin-top: 6px;
   margin-bottom: 12px;
-  white-space: pre-wrap;
-  word-break: break-all;
+  white-space: pre-wrap !important;
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+  overflow: visible !important;
+  overflow-x: visible !important;
+  font-variant-ligatures: none !important;
+  font-feature-settings: "liga" 0, "calt" 0 !important;
   page-break-inside: avoid;
+  tab-size: 2;
+  -moz-tab-size: 2;
 }
 
 code {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'JetBrains Mono', Consolas, Monaco, monospace;
   font-size: 8.5pt;
   background-color: #f1f5f9;
   color: #0f172a;
   padding: 2px 4px;
   border-radius: 3px;
+  font-variant-ligatures: none !important;
+  font-feature-settings: "liga" 0, "calt" 0 !important;
 }
 
 pre code {
@@ -627,16 +637,157 @@ def build_outline_structure():
     return outlines
 
 
+def parse_cmap(cmap_str):
+    mapping = {}
+    for line in cmap_str.split('\n'):
+        line = line.strip()
+        m = re.match(r'<([0-9A-Fa-f]+)>\s*<([0-9A-Fa-f]+)>', line)
+        if m:
+            src = int(m.group(1), 16)
+            dst_hex = m.group(2)
+            chars = []
+            for j in range(0, len(dst_hex), 4):
+                chunk = dst_hex[j:j+4]
+                if chunk:
+                    chars.append(chr(int(chunk, 16)))
+            mapping[src] = ''.join(chars)
+        m2 = re.match(r'<([0-9A-Fa-f]+)>\s*<([0-9A-Fa-f]+)>\s*<([0-9A-Fa-f]+)>', line)
+        if m2:
+            s, e, d = int(m2.group(1), 16), int(m2.group(2), 16), int(m2.group(3), 16)
+            for code in range(s, e + 1):
+                mapping[code] = chr(d + (code - s))
+    return mapping
+
+
+def decode_bt_block(block, cmaps, default_font=None):
+    cur_font = default_font
+    chars = []
+    tokens = re.split(r'(\s+)', block)
+    i = 0
+    while i < len(tokens):
+        tok = tokens[i].strip()
+        if re.match(r'^/F\d+$', tok):
+            if i + 4 < len(tokens) and tokens[i+4].strip() == 'Tf':
+                cur_font = tok
+        m = re.match(r'^<([0-9A-Fa-f]+)>$', tok)
+        if m and i + 2 < len(tokens) and tokens[i+2].strip() == 'Tj':
+            cmap = cmaps.get(cur_font, {})
+            chars.append(cmap.get(int(m.group(1), 16), ''))
+        i += 1
+    return ''.join(chars)
+
+
+def inject_actualtext_indentation(reader):
+    """
+    Inyecta marcado semántico ISO 32000-1 (/ActualText) en bloques de código monoespaciados
+    directamente sobre los objetos de página del reader antes de clonar/anexar al writer.
+    Esto permite usar writer.append(reader), conservando intactos los destinos nombrados
+    (/Names -> /Dests) y los enlaces internos de navegación generados por el motor HTML/PDF.
+    """
+    modified_pages = 0
+    total_wrapped = 0
+
+    for page in reader.pages:
+        try:
+            contents = page.get('/Contents')
+            if not contents:
+                continue
+            contents_obj = contents.get_object()
+            data = contents_obj.get_data().decode('latin1')
+        except Exception:
+            continue
+
+        fonts = page.get('/Resources', {}).get('/Font', {})
+        cmaps = {}
+        mono_fonts = set()
+
+        for fname, fobj in fonts.items():
+            if '/ToUnicode' in fobj:
+                cmaps[fname] = parse_cmap(fobj['/ToUnicode'].get_data().decode('latin1'))
+            widths = fobj.get('/Widths')
+            if widths:
+                non_zero = set([round(float(w), 1) for w in widths if float(w) > 0])
+                if len(non_zero) == 1:
+                    mono_fonts.add(fname)
+            base_font = str(fobj.get('/BaseFont', ''))
+            if 'Mono' in base_font or 'Courier' in base_font:
+                mono_fonts.add(fname)
+
+        if not mono_fonts:
+            continue
+
+        bt_blocks = list(re.finditer(r'BT\s*(.*?)\s*ET', data, re.DOTALL))
+        code_xs = []
+        for m in bt_blocks:
+            b = m.group(0)
+            fm = re.search(r'(/F\d+)\s+[\d\.]+\s+Tf', b)
+            if fm and fm.group(1) in mono_fonts:
+                tm_match = re.search(r'1\s+0\s+0\s+-1\s+([\d\.]+)\s+([\d\.]+)\s+Tm', b)
+                if tm_match:
+                    code_xs.append(float(tm_match.group(1)))
+
+        if not code_xs:
+            continue
+
+        pre_xs = [x for x in code_xs if x >= 30.0]
+        base_x = min(pre_xs) if pre_xs else min(code_xs)
+        char_w = 6.796936
+        for fname in mono_fonts:
+            fobj = fonts[fname]
+            widths = fobj.get('/Widths')
+            if widths:
+                for w in widths:
+                    if float(w) > 0:
+                        char_w = (float(w) * 11.33) / 1000.0
+                        break
+                break
+
+        new_data = data
+        page_wrapped = 0
+        for m in reversed(bt_blocks):
+            block = m.group(0)
+            f_match = re.search(r'(/F\d+)\s+[\d\.]+\s+Tf', block)
+            if not f_match or f_match.group(1) not in mono_fonts:
+                continue
+            tm_match = re.search(r'1\s+0\s+0\s+-1\s+([\d\.]+)\s+([\d\.]+)\s+Tm', block)
+            if not tm_match:
+                continue
+            x = float(tm_match.group(1))
+            txt = decode_bt_block(block, cmaps, default_font=f_match.group(1))
+            if not txt.strip():
+                continue
+            leading_from_txt = len(txt) - len(txt.lstrip(' '))
+            leading_from_x = int(round((x - base_x) / char_w)) if x > base_x else 0
+            num_spaces = max(leading_from_txt, leading_from_x)
+            if num_spaces > 0:
+                actual_line = (' ' * num_spaces) + txt.lstrip(' ')
+            else:
+                actual_line = txt
+            hex_content = 'FEFF' + actual_line.encode('utf-16-be').hex().upper()
+            wrapped = f'/Span <</ActualText <{hex_content}>>> BDC\n{block}\nEMC'
+            new_data = new_data[:m.start()] + wrapped + new_data[m.end():]
+            page_wrapped += 1
+
+        if page_wrapped > 0:
+            contents_obj.set_data(new_data.encode('latin1'))
+            modified_pages += 1
+            total_wrapped += page_wrapped
+
+    print(f"Marcado semántico /ActualText inyectado en {modified_pages} páginas ({total_wrapped} líneas con sangría preservadas).")
+
+
 def add_pdf_bookmarks(pdf_path):
-    """Inyecta el árbol de marcadores (Document Outlines) en el PDF usando pypdf."""
+    """Inyecta el árbol de marcadores (Document Outlines) y /ActualText en el PDF usando pypdf."""
     try:
         import pypdf
     except ImportError:
         print("Error: 'pypdf' no está disponible. No se pueden inyectar los marcadores.")
         return False
 
-    print("Inyectando marcadores jerárquicos (Document Outlines) en el panel lateral del PDF...")
+    print("Procesando PDF con pypdf (Inyección de /ActualText e índices de marcadores)...")
     reader = pypdf.PdfReader(pdf_path)
+    inject_actualtext_indentation(reader)
+
     writer = pypdf.PdfWriter()
     writer.append(reader)
 
@@ -683,6 +834,7 @@ def compile_pdf():
     print(f"HTML generado exitosamente en: {HTML_PATH} ({len(html_content)} caracteres)")
 
     chrome_candidates = [
+        "/opt/google/chrome/google-chrome",
         "/usr/bin/google-chrome-stable",
         "/usr/bin/google-chrome",
         "/usr/bin/chromium",

@@ -1,0 +1,14 @@
+# =============================================================================
+# Modulo 13: Helm: Gestor de Paquetes y Templating para Kubernetes
+# Ejercicio 13.2: Instalación Parametrizada y Sobreescritura de Valores (--set y -f)
+# Namespace Asignado: lab-helm
+# =============================================================================
+replicaCount: 3
+image:
+  repository: nginx
+  tag: "1.25-alpine"
+resources:
+  limits:
+    memory: 128Mi
+  requests:
+    memory: 64Mi

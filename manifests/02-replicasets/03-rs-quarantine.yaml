@@ -1,0 +1,28 @@
+# =============================================================================
+# Modulo 02: ReplicaSets: Controladores de Réplicas y Auto-sanación
+# Ejercicio 2.3: Aislamiento y Depuración de un Pod en Caliente (Quarantine)
+# Namespace Asignado: lab-replicasets
+# =============================================================================
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: rs-quarantine-demo
+  namespace: lab-replicasets
+  labels:
+    app: order-processor
+    tier: backend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: order-processor
+  template:
+    metadata:
+      labels:
+        app: order-processor
+        tier: backend
+    spec:
+      containers:
+        - name: processor
+          image: busybox:1.36
+          command: ["sh", "-c", "echo Procesando pedidos...; while true; do sleep 10; done"]

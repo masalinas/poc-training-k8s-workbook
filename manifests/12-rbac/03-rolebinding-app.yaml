@@ -1,0 +1,18 @@
+# =============================================================================
+# Modulo 12: RBAC: Control de Acceso Basado en Roles y Cuentas de Servicio
+# Ejercicio 12.3: RoleBinding y Comprobación con kubectl auth can-i
+# Namespace Asignado: lab-rbac
+# =============================================================================
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: rb-pod-viewer-binding
+  namespace: lab-rbac
+subjects:
+  - kind: ServiceAccount
+    name: sa-limited-app
+    namespace: lab-rbac
+roleRef:
+  kind: Role
+  name: role-pod-viewer
+  apiGroup: rbac.authorization.k8s.io

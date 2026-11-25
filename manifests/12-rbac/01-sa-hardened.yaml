@@ -1,0 +1,28 @@
+# =============================================================================
+# Modulo 12: RBAC: Control de Acceso Basado en Roles y Cuentas de Servicio
+# Ejercicio 12.1: Creación de ServiceAccount Dedicada y Endurecimiento de Tokens
+# Namespace Asignado: lab-rbac
+# =============================================================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: lab-rbac
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: sa-limited-app
+  namespace: lab-rbac
+automountServiceAccountToken: false
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-secure-sa
+  namespace: lab-rbac
+spec:
+  serviceAccountName: sa-limited-app
+  containers:
+    - name: app
+      image: alpine:3.19
+      command: ["/bin/sh", "-c", "sleep 3600"]

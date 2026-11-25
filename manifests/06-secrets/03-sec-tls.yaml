@@ -1,0 +1,35 @@
+# =============================================================================
+# Modulo 06: Secrets: Gestión Segura de Datos Sensibles
+# Ejercicio 6.3: Secret de Certificado TLS (kubernetes.io/tls) para Servidor Seguro
+# Namespace Asignado: lab-secrets
+# =============================================================================
+apiVersion: v1
+kind: Secret
+metadata:
+  name: sec-tls-cert
+  namespace: lab-secrets
+type: kubernetes.io/tls
+data:
+  # Certificado y clave codificados en Base64 para test.local
+  tls.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCg==
+  tls.key: LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQo=
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-tls-web
+  namespace: lab-secrets
+spec:
+  containers:
+    - name: nginx-ssl
+      image: nginx:1.25-alpine
+      ports:
+        - containerPort: 443
+      volumeMounts:
+        - name: certs-vol
+          mountPath: /etc/nginx/certs
+          readOnly: true
+  volumes:
+    - name: certs-vol
+      secret:
+        secretName: sec-tls-cert

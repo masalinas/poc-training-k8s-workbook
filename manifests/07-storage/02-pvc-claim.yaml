@@ -1,0 +1,22 @@
+# =============================================================================
+# Modulo 07: Almacenamiento Persistente: PV y PVC
+# Ejercicio 7.2: Enlace Exitoso de PersistentVolumeClaim (Bound) por Atributos
+# Namespace Asignado: lab-storage
+# =============================================================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: lab-storage
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-data-claim
+  namespace: lab-storage
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: manual
+  resources:
+    requests:
+      storage: 1Gi

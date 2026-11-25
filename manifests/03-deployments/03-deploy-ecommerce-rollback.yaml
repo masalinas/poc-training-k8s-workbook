@@ -1,0 +1,29 @@
+# =============================================================================
+# Modulo 03: Deployments: Actualizaciones Continuas y Estrategias Rollout
+# Ejercicio 3.3: Simulación de Release Fallida y Rollback a Revisión Específica
+# Namespace Asignado: lab-deployments
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deploy-ecommerce
+  namespace: lab-deployments
+  labels:
+    app: ecommerce
+  annotations:
+    kubernetes.io/change-cause: "v1.0: Despliegue inicial estable nginx-1.24"
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: ecommerce
+  template:
+    metadata:
+      labels:
+        app: ecommerce
+    spec:
+      containers:
+        - name: web
+          image: nginx:1.24-alpine
+          ports:
+            - containerPort: 80

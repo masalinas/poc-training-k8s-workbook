@@ -1,0 +1,22 @@
+# =============================================================================
+# Modulo 14: Kustomize: Personalización Declarativa sin Plantillas
+# Ejercicio 14.3: Gestión Multi-Entorno con Overlays y Parches Estratégicos (patches)
+# Namespace Asignado: lab-kustomize
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-users
+spec:
+  replicas: 4
+  template:
+    spec:
+      containers:
+        - name: api
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "250m"

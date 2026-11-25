@@ -94,7 +94,7 @@ spec:
       args:
         - |
           while true; do
-            echo "[$(date '+%Y-%m-%d %H:%M:%S')] Evento procesado en app" >> /var/log/app/events.log;
+            echo "$(date '+%T') Evento en app" >> /var/log/app/events.log;
             sleep 5;
           done
       volumeMounts:
@@ -171,7 +171,8 @@ kubectl get pod -n lab-pods pod-backend-init
 kubectl logs -n lab-pods pod-backend-init -c wait-db
 
 # 3. Simular la base de datos creando un pod y servicio temporal
-kubectl run db-service --image=busybox:1.36 -n lab-pods --port=3306 -- nc -lk -p 3306
+kubectl run db-service --image=busybox:1.36 -n lab-pods \\\\
+  --port=3306 -- nc -lk -p 3306
 kubectl expose pod db-service -n lab-pods --port=3306
 
 # 4. Verificar que pod-backend-init transiciona a Running (1/1)
@@ -233,14 +234,17 @@ spec:
 <p><strong>Validación Operativa:</strong></p>
 <pre><code># 1. Aplicar y verificar registro de sondas
 kubectl apply -f pod-probes.yaml
-kubectl describe pod -n lab-pods pod-health-hardened | grep -E "Startup|Liveness|Readiness"
+kubectl describe pod -n lab-pods pod-health-hardened | \\\\
+  grep -E "Startup|Liveness|Readiness"
 
 # 2. Simular fallo de readiness
-kubectl exec -n lab-pods pod-health-hardened -c web -- mv /usr/share/nginx/html/index.html /tmp/
+kubectl exec -n lab-pods pod-health-hardened -c web -- \\\\
+  mv /usr/share/nginx/html/index.html /tmp/
 # Observar que el Pod pasa a READY 0/1 sin reiniciarse inmediatamente
 kubectl get pod -n lab-pods pod-health-hardened
 
-# 3. Tras fallar la livenessProbe (3 fallos * 10s = 30s), Kubelet reinicia el contenedor
+# 3. Tras fallar la livenessProbe (3 fallos * 10s = 30s),
+#    Kubelet reinicia el contenedor
 kubectl get pod -n lab-pods pod-health-hardened</code></pre>
 """
         }
@@ -316,7 +320,8 @@ MODULE_REPLICASETS = {
 <p><strong>Comandos y Manifiesto YAML:</strong></p>
 <pre><code># 1. Crear namespace y Pod preexistente
 kubectl create namespace lab-replicasets
-kubectl run legacy-pod-1 --namespace=lab-replicasets --image=nginx:1.25-alpine \\
+kubectl run legacy-pod-1 --namespace=lab-replicasets \\\\
+  --image=nginx:1.25-alpine \\\\
   --labels="app=payment,tier=backend,env=staging"</code></pre>
 
 <p><strong>Manifiesto del ReplicaSet:</strong></p>
@@ -387,7 +392,9 @@ kubectl scale rs rs-elastic-worker -n lab-replicasets --replicas=5
 kubectl get pods -n lab-replicasets -l app=elastic-worker
 
 # 3. Matar dos pods de forma simultánea
-PODS_TO_DELETE=$(kubectl get pods -n lab-replicasets -l app=elastic-worker -o jsonpath='{.items[0..1].metadata.name}')
+PODS_TO_DELETE=$(kubectl get pods -n lab-replicasets \\\\
+  -l app=elastic-worker \\\\
+  -o jsonpath='{.items[0..1].metadata.name}')
 kubectl delete pods -n lab-replicasets $PODS_TO_DELETE
 
 # 4. Comprobar que el número total se mantiene inmediatamente en 5
@@ -426,11 +433,14 @@ spec:
 EOF
 
 # 2. Identificar el nombre de uno de los pods
-TARGET_POD=$(kubectl get pods -n lab-replicasets -l app=web-worker -o jsonpath='{.items[0].metadata.name}')
+TARGET_POD=$(kubectl get pods -n lab-replicasets \\\\
+  -l app=web-worker \\\\
+  -o jsonpath='{.items[0].metadata.name}')
 echo "Aislando pod: $TARGET_POD"
 
 # 3. Sobreescribir la etiqueta selectora para sacarlo del control del ReplicaSet
-kubectl label pod $TARGET_POD -n lab-replicasets app=debug-quarantine --overwrite
+kubectl label pod $TARGET_POD -n lab-replicasets \\\\
+  app=debug-quarantine --overwrite
 
 # 4. Verificar que existen 4 pods: 3 del RS y 1 aislado
 kubectl get pods -n lab-replicasets -L app</code></pre>
@@ -552,7 +562,8 @@ spec:
               cpu: "100m"</code></pre>
 
 <p><strong>Comando Imperativo Rápido (Truco CKA):</strong></p>
-<pre><code>kubectl create deployment deploy-web-secured -n lab-deployments --image=nginx:1.25-alpine \\
+<pre><code>kubectl create deployment deploy-web-secured -n lab-deployments \\\\
+  --image=nginx:1.25-alpine \\\\
   --replicas=3 --dry-run=client -o yaml &gt; deploy.yaml
 # Añadir la sección resources en el fichero generado y aplicar:
 kubectl apply -f deploy.yaml</code></pre>
@@ -598,7 +609,8 @@ spec:
 kubectl apply -f deploy-rolling.yaml
 
 # 2. Actualizar la imagen imperativamente
-kubectl set image deployment/deploy-rolling-tuned httpd=httpd:2.4.58-alpine -n lab-deployments
+kubectl set image deployment/deploy-rolling-tuned \\\\
+  httpd=httpd:2.4.58-alpine -n lab-deployments
 
 # 3. Seguir el progreso del despliegue paso a paso
 kubectl rollout status deployment/deploy-rolling-tuned -n lab-deployments</code></pre>
@@ -614,12 +626,16 @@ kubectl rollout status deployment/deploy-rolling-tuned -n lab-deployments</code>
 
 <p><strong>Procedimiento Completo de Fallo y Rollback:</strong></p>
 <pre><code># 1. Crear despliegue inicial estable
-kubectl create deployment deploy-ecommerce -n lab-deployments --image=nginx:1.24-alpine --replicas=3
-kubectl annotate deployment/deploy-ecommerce -n lab-deployments kubernetes.io/change-cause="Version 1.0 estable"
+kubectl create deployment deploy-ecommerce -n lab-deployments \\\\
+  --image=nginx:1.24-alpine --replicas=3
+kubectl annotate deployment/deploy-ecommerce -n lab-deployments \\\\
+  kubernetes.io/change-cause="Version 1.0 estable"
 
 # 2. Provocar el fallo con imagen errónea
-kubectl set image deployment/deploy-ecommerce nginx=nginx:v999.invalid -n lab-deployments
-kubectl annotate deployment/deploy-ecommerce -n lab-deployments kubernetes.io/change-cause="Update fallido v999"
+kubectl set image deployment/deploy-ecommerce \\\\
+  nginx=nginx:v999.invalid -n lab-deployments
+kubectl annotate deployment/deploy-ecommerce -n lab-deployments \\\\
+  kubernetes.io/change-cause="Update fallido v999"
 
 # 3. Comprobar que los nuevos pods quedan bloqueados
 kubectl get pods -n lab-deployments -l app=deploy-ecommerce
@@ -628,7 +644,8 @@ kubectl get pods -n lab-deployments -l app=deploy-ecommerce
 kubectl rollout history deployment/deploy-ecommerce -n lab-deployments
 
 # 5. Ejecutar Rollback a la revision 1
-kubectl rollout undo deployment/deploy-ecommerce -n lab-deployments --to-revision=1
+kubectl rollout undo deployment/deploy-ecommerce \\\\
+  -n lab-deployments --to-revision=1
 
 # 6. Comprobar resolucion exitosa
 kubectl rollout status deployment/deploy-ecommerce -n lab-deployments
@@ -756,7 +773,8 @@ kubectl apply -f svc-clusterip.yaml
 kubectl get endpoints -n lab-services svc-api-node
 
 # 3. Validar conectividad interna desde un pod temporal
-kubectl run test-curl --rm -it -n lab-services --image=curlimages/curl:8.6.0 -- \\
+kubectl run test-curl --rm -it -n lab-services \\\\
+  --image=curlimages/curl:8.6.0 -- \\\\
   curl -s http://svc-api-node:80</code></pre>
 """
         },
@@ -809,7 +827,8 @@ spec:
 kubectl apply -f svc-nodeport.yaml
 
 # 2. Obtener la IP de un nodo
-NODE_IP=$(kubectl get nodes -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
+NODE_IP=$(kubectl get nodes \\\\
+  -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
 echo "Probando en: http://$NODE_IP:30088"
 
 # 3. Realizar petición HTTP
@@ -864,7 +883,8 @@ spec:
 kubectl apply -f svc-headless.yaml
 
 # 2. Consultar DNS desde un pod temporal con dnsutils
-kubectl run dns-test --rm -it -n lab-services --image=registry.k8s.io/e2e-test-images/jessie-dnsutils:1.3 -- \\
+kubectl run dns-test --rm -it -n lab-services \\\\
+  --image=registry.k8s.io/e2e-test-images/jessie-dnsutils:1.3 -- \\\\
   nslookup svc-headless.lab-services.svc.cluster.local
 
 # Observar que la respuesta contiene las 3 IPs de los pods (Address 1, Address 2, Address 3)</code></pre>

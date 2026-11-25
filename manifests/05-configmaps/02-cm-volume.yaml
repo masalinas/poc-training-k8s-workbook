@@ -1,0 +1,38 @@
+# =============================================================================
+# Modulo 05: ConfigMaps: Desacoplamiento de la Configuración
+# Ejercicio 5.2: Montaje de Archivos de Configuración Completos mediante Volumen
+# Namespace Asignado: lab-configmaps
+# =============================================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cm-nginx-conf
+  namespace: lab-configmaps
+data:
+  custom.conf: |
+    server {
+        listen 8080;
+        location / {
+            add_header X-Custom-Header "K8s-Course" always;
+            return 200 "Configuracion inyectada exitosamente\n";
+        }
+    }
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-nginx-custom
+  namespace: lab-configmaps
+spec:
+  volumes:
+    - name: nginx-config-vol
+      configMap:
+        name: cm-nginx-conf
+  containers:
+    - name: nginx
+      image: nginx:1.25-alpine
+      ports:
+        - containerPort: 8080
+      volumeMounts:
+        - name: nginx-config-vol
+          mountPath: /etc/nginx/conf.d

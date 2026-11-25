@@ -1,0 +1,49 @@
+# =============================================================================
+# Modulo 05: ConfigMaps: Desacoplamiento de la Configuración
+# Ejercicio 5.1: Inyección de Parámetros como Variables de Entorno (individuales y envFrom)
+# Namespace Asignado: lab-configmaps
+# =============================================================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: lab-configmaps
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cm-app-config
+  namespace: lab-configmaps
+data:
+  APP_ENV: "production"
+  LOG_LEVEL: "info"
+  MAX_CONNECTIONS: "100"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cm-feature-flags
+  namespace: lab-configmaps
+data:
+  BETA_FEATURE: "true"
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-config-env
+  namespace: lab-configmaps
+spec:
+  containers:
+    - name: app
+      image: busybox:1.36
+      command: ["/bin/sh", "-c", "env && sleep 3600"]
+      # Importación masiva
+      envFrom:
+        - configMapRef:
+            name: cm-app-config
+      # Importación individual
+      env:
+        - name: BETA_FEATURE
+          valueFrom:
+            configMapKeyRef:
+              name: cm-feature-flags
+              key: BETA_FEATURE

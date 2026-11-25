@@ -1,0 +1,15 @@
+# =============================================================================
+# Modulo 14: Kustomize: Personalización Declarativa sin Plantillas
+# Ejercicio 14.2: Generación Declarativa de ConfigMaps y Secrets con Hash de Contenido
+# Namespace Asignado: lab-kustomize
+# =============================================================================
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - deployment.yaml
+
+configMapGenerator:
+  - name: cm-app-props
+    files:
+      - app.properties

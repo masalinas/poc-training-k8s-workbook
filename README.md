@@ -2,7 +2,7 @@
 
 Guía práctica intensiva y profesional compuesta por **42 ejercicios de laboratorio y su solucionario técnico completo**, orientada a la capacitación práctica de administradores de sistemas, ingenieros DevOps/SRE y a la preparación rigurosa de las certificaciones oficiales **CKA (Certified Kubernetes Administrator)** y **CKAD (Certified Kubernetes Application Developer)**.
 
-El repositorio incluye el código fuente modular en Python, el documento maquetado en HTML5 y el documento compilado final en formato PDF (**86 páginas**) con diseño editorial profesional y doble sistema de navegación interactiva.
+El repositorio incluye el código fuente modular en Python, el documento maquetado en HTML5, el documento compilado final en formato PDF (**86 páginas**) con diseño editorial profesional, doble sistema de navegación interactiva y un directorio estructurado con los **42 manifiestos YAML listos para aplicar**.
 
 ---
 
@@ -15,6 +15,8 @@ El repositorio incluye el código fuente modular en Python, el documento maqueta
 - **Doble Navegación Interactiva**:
   - Enlaces bidireccionales internos dentro del documento (salto directo del Enunciado a la Solución y retorno al Enunciado).
   - Árbol jerárquico nativo de marcadores (*Document Outlines*) en el panel lateral del visor PDF.
+- **Preservación Total de Sangría en PDF**: Integración de marcado semántico ISO 32000-1 (`/ActualText`) que asegura que al copiar cualquier fragmento YAML desde el PDF hacia un editor o fichero local se conserven intactos los espacios de indentación.
+- **Directorio de Manifiestos Listos para Desplegar**: Carpeta `manifests/` organizada por módulos temáticos con los 42 YAMLs comentados para su ejecución directa con `kubectl apply`.
 - **Enfoque Práctico de Certificación**: Cada solución incluye manifiestos YAML comentados línea a línea, atajos imperativos con `kubectl` y `helm`, procedimientos de verificación con salidas esperadas y un apartado específico de **Trampas CKA / Errores Comunes ("Gotchas")**.
 
 ---
@@ -44,10 +46,15 @@ El repositorio incluye el código fuente modular en Python, el documento maqueta
 
 ```text
 .
-├── k8s-exercises-workbook.pdf   # Cuaderno final compilado en PDF (86 páginas, marcadores y enlaces interactivos)
+├── k8s-exercises-workbook.pdf   # Cuaderno final compilado en PDF (86 páginas, marcadores e indentación preservada)
 ├── README.md                    # Descripción y guía de uso del repositorio
 ├── docs/
 │   └── k8s-exercises-workbook.html # Documento estructurado en HTML5/CSS listo para renderizado
+├── manifests/                   # 42 manifiestos YAML de solución listos para aplicar con kubectl
+│   ├── 01-pods/
+│   ├── 02-replicasets/
+│   ├── ...
+│   └── 14-kustomize/
 ├── scripts/
 │   ├── content_data.py          # Metadatos del curso y agregador de los 14 módulos
 │   ├── modules_fundamentos.py   # Definición de módulos 1 al 4 (Pods, ReplicaSets, Deployments, Services)
@@ -55,8 +62,9 @@ El repositorio incluye el código fuente modular en Python, el documento maqueta
 │   ├── modules_advanced.py      # Definición de módulos 8 al 10 (Jobs/CronJobs, DaemonSets, StatefulSets)
 │   ├── modules_net_sec.py       # Definición de módulos 11 y 12 (Ingress, RBAC)
 │   ├── modules_packaging.py     # Definición de módulos 13 y 14 (Helm, Kustomize)
-│   ├── generate_html_pdf.py     # Pipeline de compilación HTML -> PDF vía Headless Chrome + pypdf
-│   └── verify_workbook.py       # Suite de verificación técnica (enlaces, IDs, páginas y marcadores)
+│   ├── generate_html_pdf.py     # Pipeline de compilación HTML -> PDF con /ActualText e inyección de marcadores
+│   ├── export_manifests.py      # Generador de los 42 archivos YAML en manifests/
+│   └── verify_workbook.py       # Suite de verificación técnica (enlaces, IDs, páginas, indentación y YAML)
 └── openspec/                    # Especificaciones formales y trazabilidad de cambios (OpenSpec)
     ├── config.yaml
     ├── specs/                   # Especificaciones de contenido y generación PDF
@@ -70,9 +78,9 @@ El repositorio incluye el código fuente modular en Python, el documento maqueta
 Para compilar el documento o ejecutar las validaciones técnicas se requiere:
 
 1. **Python 3.8+**
-2. **Librería Python `pypdf`**:
+2. **Librerías Python `pypdf` y `pyyaml`**:
    ```bash
-   pip install pypdf
+   pip install pypdf pyyaml
    ```
 3. **Navegador para renderizado Headless**:
    - `google-chrome` o `chromium-browser` instalado en el sistema y disponible en el `PATH`.
@@ -83,15 +91,29 @@ Para compilar el documento o ejecutar las validaciones técnicas se requiere:
 
 ### 1. Compilación del Cuaderno (HTML y PDF)
 
-El script `scripts/generate_html_pdf.py` genera el archivo intermedio en `docs/k8s-exercises-workbook.html`, invoca Chrome Headless para compilar el PDF y finalmente utiliza `pypdf` para inyectar los metadatos y el árbol jerárquico de marcadores:
+El script `scripts/generate_html_pdf.py` genera el archivo intermedio en `docs/k8s-exercises-workbook.html`, invoca Chrome Headless para compilar el PDF y utiliza `pypdf` para inyectar tanto el marcado semántico `/ActualText` (garantizando copia fiel de sangrías) como el árbol de marcadores interactivo:
 
 ```bash
 python3 scripts/generate_html_pdf.py
 ```
 
-### 2. Verificación de Integridad
+### 2. Exportación de Manifiestos YAML (`manifests/`)
 
-Para validar que no existen enlaces rotos, que los 42 ejercicios y 42 soluciones tienen identificadores válidos y que el árbol de marcadores del PDF se ha generado correctamente:
+Para regenerar o inspeccionar los 42 archivos YAML organizados por módulos temáticos:
+
+```bash
+python3 scripts/export_manifests.py
+```
+
+Puedes aplicar directamente cualquier ejercicio en tu clúster de laboratorio:
+
+```bash
+kubectl apply -f manifests/01-pods/01-pod-sidecar-logger.yaml
+```
+
+### 3. Verificación de Integridad
+
+Para validar que los enlaces internos resuelven, los marcadores están inyectados, la extracción de texto del PDF conserva los espacios de sangría y los 42 manifiestos exportados son sintácticamente válidos:
 
 ```bash
 python3 scripts/verify_workbook.py
@@ -107,6 +129,13 @@ Total de páginas en el PDF: 86
 Marcadores raíz en panel lateral: 6
 Total de elementos en árbol de marcadores: 116
 ✓ Árbol jerárquico de marcadores del panel lateral verificado con éxito.
+Verificando preservación de espacios e indentación en PDF (vía pdftotext estándar)...
+Líneas con 2 espacios detectadas: 308
+Líneas con 4+ espacios detectadas: 519
+✓ Indentación y espacios YAML preservados correctamente en la extracción del PDF.
+Verificando directorio de manifiestos: manifests...
+Total de archivos YAML encontrados en manifests: 42
+✓ Los 42 manifiestos YAML exportados son sintácticamente válidos.
 === ¡TODAS LAS VERIFICACIONES COMPLETADAS EXITOSAMENTE! ===
 ```
 
@@ -114,7 +143,9 @@ Total de elementos en árbol de marcadores: 116
 
 ## 📄 Archivos de Referencia
 
-- [k8s-exercises-workbook.pdf](file:///home/miguel/git/poc-training-k8s-workbook/k8s-exercises-workbook.pdf): Documento PDF final.
+- [k8s-exercises-workbook.pdf](file:///home/miguel/git/poc-training-k8s-workbook/k8s-exercises-workbook.pdf): Documento PDF final con navegación lateral y copia fiel de sangría.
+- [manifests/](file:///home/miguel/git/poc-training-k8s-workbook/manifests): Directorio con los 42 manifiestos YAML organizados por módulo.
 - [docs/k8s-exercises-workbook.html](file:///home/miguel/git/poc-training-k8s-workbook/docs/k8s-exercises-workbook.html): Maquetación web del cuaderno.
-- [scripts/generate_html_pdf.py](file:///home/miguel/git/poc-training-k8s-workbook/scripts/generate_html_pdf.py): Script de generación y compilación.
-- [scripts/verify_workbook.py](file:///home/miguel/git/poc-training-k8s-workbook/scripts/verify_workbook.py): Script de verificación y pruebas.
+- [scripts/generate_html_pdf.py](file:///home/miguel/git/poc-training-k8s-workbook/scripts/generate_html_pdf.py): Script de generación y compilación con marcado `/ActualText`.
+- [scripts/export_manifests.py](file:///home/miguel/git/poc-training-k8s-workbook/scripts/export_manifests.py): Script exportador de manifiestos.
+- [scripts/verify_workbook.py](file:///home/miguel/git/poc-training-k8s-workbook/scripts/verify_workbook.py): Suite de verificación y pruebas integradas.
