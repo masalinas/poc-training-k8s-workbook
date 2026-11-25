@@ -145,19 +145,35 @@ metadata:
   name: pod-tls-web
   namespace: lab-secrets
 spec:
+  volumes:
+    - name: certs-vol
+      secret:
+        secretName: sec-tls-cert
   containers:
     - name: nginx-ssl
       image: nginx:1.25-alpine
+      command:
+        - /bin/sh
+        - -c
+        - |
+          cat << 'EOF' > /etc/nginx/conf.d/ssl.conf
+          server {
+              listen 443 ssl;
+              server_name test.local;
+              ssl_certificate /etc/nginx/certs/tls.crt;
+              ssl_certificate_key /etc/nginx/certs/tls.key;
+              location / {
+                  return 200 'Conexion TLS Segura con Secret Exitosa\\n';
+              }
+          }
+          EOF
+          exec nginx -g 'daemon off;'
       ports:
         - containerPort: 443
       volumeMounts:
         - name: certs-vol
           mountPath: /etc/nginx/certs
           readOnly: true
-  volumes:
-    - name: certs-vol
-      secret:
-        secretName: sec-tls-cert
 """,
     (9, 3): """apiVersion: apps/v1
 kind: DaemonSet

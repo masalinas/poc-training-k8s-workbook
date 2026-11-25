@@ -1,5 +1,20 @@
 # Cuaderno de Ejercicios y Solucionario Técnico de Kubernetes
 
+<div align="center">
+
+![Kubernetes](https://img.shields.io/badge/Kubernetes-v1.28%2B-326CE5?logo=kubernetes&logoColor=white)
+![Certificación](https://img.shields.io/badge/Certificación-CKA_%7C_CKAD-blue?logo=linuxfoundation&logoColor=white)
+![Ejercicios](https://img.shields.io/badge/Ejercicios-42_Labs-success)
+![Módulos](https://img.shields.io/badge/Módulos-14_Bloques-orange)
+![Ecosistema](https://img.shields.io/badge/Ecosistema-Helm_%7C_Kustomize-0F1689?logo=helm&logoColor=white)
+![Deliverable](https://img.shields.io/badge/PDF-k8s--exercises--workbook.pdf-red?logo=adobeacrobatreader)
+
+**Cuaderno Práctico y Solucionario Oficial:** 42 ejercicios de laboratorio y resoluciones exhaustivas, 14 módulos temáticos aislados por namespaces (`lab-*`), 42 manifiestos YAML listos para aplicar y guía editorial de 86 páginas con marcado `/ActualText` para preparación rigurosa CKA y CKAD.
+
+</div>
+
+---
+
 Guía práctica intensiva y profesional compuesta por **42 ejercicios de laboratorio y su solucionario técnico completo**, orientada a la capacitación práctica de administradores de sistemas, ingenieros DevOps/SRE y a la preparación rigurosa de las certificaciones oficiales **CKA (Certified Kubernetes Administrator)** y **CKAD (Certified Kubernetes Application Developer)**.
 
 El repositorio incluye el código fuente modular en Python, el documento maquetado en HTML5, el documento compilado final en formato PDF (**86 páginas**) con diseño editorial profesional, doble sistema de navegación interactiva y un directorio estructurado con los **42 manifiestos YAML listos para aplicar**.

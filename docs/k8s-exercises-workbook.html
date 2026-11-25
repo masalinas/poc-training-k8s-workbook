@@ -968,7 +968,7 @@ th {
         </ul>
         <div class="callout callout-info">
           <div class="callout-title">Verificación Esperada</div>
-          <p>Ejecutar <code>kubectl describe secret -n lab-secrets sec-tls-cert</code> y comprobar que el tipo es <code>kubernetes.io/tls</code> y contiene las claves <code>tls.crt</code> y <code>tls.key</code>.</p>
+          <p>Ejecutar <code>kubectl describe secret -n lab-secrets sec-tls-cert</code> comprobando las claves <code>tls.crt</code> y <code>tls.key</code>, y validar la respuesta HTTPS con <code>curl --cacert /tmp/tls.crt --resolve test.local:443:&lt;POD_IP&gt; https://test.local/</code>.</p>
         </div>
         <a class="btn-nav" href="#sol-6-3">Ver Solución y Manifiesto &rarr;</a>
       </div>
@@ -2492,10 +2492,10 @@ kubectl exec -n lab-secrets pod-restricted-secret -- \
           <a class="btn-nav btn-nav-return" href="#ex-6-3">&larr; Volver al Enunciado</a>
         </div>
         
-<p><strong>Explicación Técnica:</strong> El tipo <code>kubernetes.io/tls</code> valida automáticamente que los datos proporcionados correspondan a una clave privada y un certificado X.509 válidos.</p>
+<p><strong>Explicación Técnica:</strong> El tipo <code>kubernetes.io/tls</code> valida automáticamente que los datos proporcionados correspondan a una clave privada y un certificado X.509 válidos (claves <code>tls.crt</code> y <code>tls.key</code>). Para servir HTTPS, montamos el Secret como volumen en <code>/etc/nginx/certs</code> y configuramos Nginx para responder en el puerto 443 usando dichos certificados.</p>
 
-<p><strong>Generación del Certificado y Creación del Secret:</strong></p>
-<pre><code># 1. Generar par de certificados SSL autofirmados
+<p><strong>Paso 1: Generación del Certificado y Creación del Secret TLS:</strong></p>
+<pre><code># 1. Generar par de certificados SSL autofirmados para test.local
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
   -keyout /tmp/tls.key -out /tmp/tls.crt -subj "/CN=test.local/O=k8s-lab"
 
@@ -2506,6 +2506,61 @@ kubectl create secret tls sec-tls-cert -n lab-secrets \
 
 # 3. Comprobar metadata y formato del secret
 kubectl get secret -n lab-secrets sec-tls-cert -o yaml</code></pre>
+
+<p><strong>Paso 2: Manifiesto del Pod Nginx con SSL (<code>pod-tls-web.yaml</code>):</strong></p>
+<pre><code>apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-tls-web
+  namespace: lab-secrets
+spec:
+  volumes:
+    - name: certs-vol
+      secret:
+        secretName: sec-tls-cert
+  containers:
+    - name: nginx-ssl
+      image: nginx:1.25-alpine
+      command:
+        - /bin/sh
+        - -c
+        - |
+          cat &lt;&lt; 'EOF' &gt; /etc/nginx/conf.d/ssl.conf
+          server {
+              listen 443 ssl;
+              server_name test.local;
+              ssl_certificate /etc/nginx/certs/tls.crt;
+              ssl_certificate_key /etc/nginx/certs/tls.key;
+              location / {
+                  return 200 'Conexion TLS Segura con Secret Exitosa\n';
+              }
+          }
+          EOF
+          exec nginx -g 'daemon off;'
+      ports:
+        - containerPort: 443
+      volumeMounts:
+        - name: certs-vol
+          mountPath: /etc/nginx/certs
+          readOnly: true</code></pre>
+
+<p><strong>Paso 3: Despliegue y Validación con curl:</strong></p>
+<pre><code># 1. Desplegar el Pod Nginx con SSL
+kubectl apply -f pod-tls-web.yaml
+
+# 2. Esperar a que el Pod esté en estado Running y obtener su IP
+kubectl wait --for=condition=Ready pod/pod-tls-web -n lab-secrets --timeout=30s
+POD_IP=$(kubectl get pod -n lab-secrets pod-tls-web \
+  -o jsonpath='{.status.podIP}')
+
+# 3. Petición HTTPS con curl verificando el certificado generado
+curl --cacert /tmp/tls.crt --resolve test.local:443:$POD_IP \
+  https://test.local/
+# Salida esperada: Conexion TLS Segura con Secret Exitosa
+
+# 4. Alternativa de verificación rápida dentro del contenedor
+kubectl exec -n lab-secrets pod-tls-web -- \
+  wget -q -O - --no-check-certificate https://localhost:443</code></pre>
 
 <div class="callout callout-tip">
   <div class="callout-title">Atajo Imperativo CKA</div>
